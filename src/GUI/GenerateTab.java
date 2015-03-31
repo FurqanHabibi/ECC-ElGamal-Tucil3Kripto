@@ -37,6 +37,7 @@ public class GenerateTab extends JPanel{
 	private JLabel lblBasePoint;
 	private JScrollPane privateKeyScrollPane;
 	private JScrollPane publicKeyScrollPane;
+	private JButton btnGeneratePublicFrom;
 
 	public GenerateTab() {
 		this.setLayout(null);
@@ -48,7 +49,7 @@ public class GenerateTab extends JPanel{
 			}
 		});
 		
-		button.setBounds(10, 89, 201, 23);
+		button.setBounds(10, 89, 331, 23);
 		this.add(button);
 		
 		label = new JLabel("Your private key:");
@@ -166,6 +167,15 @@ public class GenerateTab extends JPanel{
 		paramBaseY.setBounds(518, 58, 164, 20);
 		this.add(paramBaseY);
 		paramBaseY.setColumns(10);
+		
+		btnGeneratePublicFrom = new JButton("Generate public key from private key");
+		btnGeneratePublicFrom.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
+			}
+		});
+		btnGeneratePublicFrom.setBounds(351, 89, 331, 23);
+		add(btnGeneratePublicFrom);
 	}
 	
 	private void generatePrivateKey(long p) {
