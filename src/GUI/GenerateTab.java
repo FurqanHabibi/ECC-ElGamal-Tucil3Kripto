@@ -14,6 +14,7 @@ import algo.ECC;
 import algo.Point;
 
 import java.io.FileWriter;
+import javax.swing.JScrollPane;
 
 public class GenerateTab extends JPanel{
 	
@@ -34,6 +35,8 @@ public class GenerateTab extends JPanel{
 	private JLabel lblNewLabel_5;
 	private JLabel lblNewLabel_6;
 	private JLabel lblBasePoint;
+	private JScrollPane privateKeyScrollPane;
+	private JScrollPane publicKeyScrollPane;
 
 	public GenerateTab() {
 		this.setLayout(null);
@@ -53,8 +56,11 @@ public class GenerateTab extends JPanel{
 		this.add(label);
 		
 		privateKeyTextArea = new JTextArea();
-		privateKeyTextArea.setBounds(10, 136, 331, 136);
-		this.add(privateKeyTextArea);
+		// privateKeyTextArea.setBounds(10, 136, 331, 136);
+		
+		privateKeyScrollPane = new JScrollPane(privateKeyTextArea);
+		privateKeyScrollPane.setBounds(10, 136, 331, 136);
+		add(privateKeyScrollPane);
 		
 		button_2 = new JButton("Save private key");
 		button_2.addActionListener(new ActionListener() {
@@ -91,9 +97,13 @@ public class GenerateTab extends JPanel{
 		this.add(lblNewLabel);
 		
 		publicKeyTextArea = new JTextArea();
-		publicKeyTextArea.setBounds(351, 136, 331, 136);
-		this.add(publicKeyTextArea);
+		// publicKeyTextArea.setBounds(351, 136, 331, 136);
+		// this.add(publicKeyTextArea);
 		publicKeyTextArea.setEditable(false);
+		
+		publicKeyScrollPane = new JScrollPane(publicKeyTextArea);
+		publicKeyScrollPane.setBounds(351, 136, 331, 136);
+		add(publicKeyScrollPane);
 		
 		btnNewButton = new JButton("Save public key");
 		btnNewButton.addActionListener(new ActionListener() {
