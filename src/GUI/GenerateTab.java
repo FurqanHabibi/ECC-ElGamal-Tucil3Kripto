@@ -38,7 +38,7 @@ public class GenerateTab extends JPanel{
 	public GenerateTab() {
 		this.setLayout(null);
 		
-		button = new JButton("Generate new private key");
+		button = new JButton("Generate new keys");
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				generatePrivateKey(Long.parseLong(paramP.getText()));
@@ -63,7 +63,7 @@ public class GenerateTab extends JPanel{
 				int returnVal = fc.showSaveDialog(null);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 			        try {
-			            FileWriter fw = new FileWriter(fc.getSelectedFile() + ".priv");
+			            FileWriter fw = new FileWriter(fc.getSelectedFile() + ".pri");
 			            fw.write(paramA.getText() + " " + paramB.getText() + " " + paramP.getText() + "\n");
 			            fw.write(paramBaseX.getText() + " " + paramBaseY.getText() + "\n");
 			            fw.write(privateKeyTextArea.getText() + "\n");
@@ -77,14 +77,14 @@ public class GenerateTab extends JPanel{
 		button_2.setBounds(10, 283, 201, 23);
 		this.add(button_2);
 		
-		btnNewButton_5 = new JButton("Generate public key");
-		btnNewButton_5.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
-			}
-		});
-		btnNewButton_5.setBounds(351, 89, 201, 23);
-		this.add(btnNewButton_5);
+//		btnNewButton_5 = new JButton("Generate public key");
+//		btnNewButton_5.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent arg0) {
+//				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
+//			}
+//		});
+//		btnNewButton_5.setBounds(351, 89, 201, 23);
+//		this.add(btnNewButton_5);
 		
 		lblNewLabel = new JLabel("Your public key:");
 		lblNewLabel.setBounds(351, 119, 108, 14);
