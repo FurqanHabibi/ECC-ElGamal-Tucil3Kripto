@@ -3,6 +3,7 @@ package GUI;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -14,15 +15,20 @@ import algo.ECC;
 import algo.Point;
 
 import java.io.FileWriter;
+import java.util.ArrayList;
+
 import javax.swing.JScrollPane;
+import javax.swing.JList;
+import javax.swing.AbstractListModel;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.event.ListDataListener;
 
 public class GenerateTab extends JPanel{
 	
 	private JTextField paramA;
 	private JTextField paramB;
 	private JTextField paramP;
-	private JTextField paramBaseX;
-	private JTextField paramBaseY;
 	private JButton button;
 	private JLabel label;
 	private JTextArea privateKeyTextArea;
@@ -38,6 +44,8 @@ public class GenerateTab extends JPanel{
 	private JScrollPane privateKeyScrollPane;
 	private JScrollPane publicKeyScrollPane;
 	private JButton btnGeneratePublicFrom;
+	private JButton generatePointsButton;
+	private JComboBox<Point> basePointList;
 
 	public GenerateTab() {
 		this.setLayout(null);
@@ -49,18 +57,18 @@ public class GenerateTab extends JPanel{
 			}
 		});
 		
-		button.setBounds(10, 89, 331, 23);
+		button.setBounds(10, 118, 331, 23);
 		this.add(button);
 		
 		label = new JLabel("Your private key:");
-		label.setBounds(10, 119, 108, 14);
+		label.setBounds(10, 152, 108, 14);
 		this.add(label);
 		
 		privateKeyTextArea = new JTextArea();
 		// privateKeyTextArea.setBounds(10, 136, 331, 136);
 		
 		privateKeyScrollPane = new JScrollPane(privateKeyTextArea);
-		privateKeyScrollPane.setBounds(10, 136, 331, 136);
+		privateKeyScrollPane.setBounds(10, 177, 331, 136);
 		add(privateKeyScrollPane);
 		
 		button_2 = new JButton("Save private key");
@@ -72,7 +80,10 @@ public class GenerateTab extends JPanel{
 			        try {
 			            FileWriter fw = new FileWriter(fc.getSelectedFile() + ".pri");
 			            fw.write(paramA.getText() + " " + paramB.getText() + " " + paramP.getText() + "\n");
-			            fw.write(paramBaseX.getText() + " " + paramBaseY.getText() + "\n");
+			            
+			            Point basePoint = (Point) basePointList.getSelectedItem();
+			            
+			            fw.write(basePoint.x + " " + basePoint.y + "\n");
 			            fw.write(privateKeyTextArea.getText() + "\n");
 			            fw.close();
 			        } catch (Exception ex) {
@@ -81,20 +92,11 @@ public class GenerateTab extends JPanel{
 			    }
 			}
 		});
-		button_2.setBounds(10, 283, 201, 23);
+		button_2.setBounds(10, 324, 201, 23);
 		this.add(button_2);
 		
-//		btnNewButton_5 = new JButton("Generate public key");
-//		btnNewButton_5.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent arg0) {
-//				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
-//			}
-//		});
-//		btnNewButton_5.setBounds(351, 89, 201, 23);
-//		this.add(btnNewButton_5);
-		
 		lblNewLabel = new JLabel("Your public key:");
-		lblNewLabel.setBounds(351, 119, 108, 14);
+		lblNewLabel.setBounds(351, 152, 108, 14);
 		this.add(lblNewLabel);
 		
 		publicKeyTextArea = new JTextArea();
@@ -103,7 +105,7 @@ public class GenerateTab extends JPanel{
 		publicKeyTextArea.setEditable(false);
 		
 		publicKeyScrollPane = new JScrollPane(publicKeyTextArea);
-		publicKeyScrollPane.setBounds(351, 136, 331, 136);
+		publicKeyScrollPane.setBounds(351, 177, 331, 136);
 		add(publicKeyScrollPane);
 		
 		btnNewButton = new JButton("Save public key");
@@ -115,7 +117,10 @@ public class GenerateTab extends JPanel{
 			        try {
 			            FileWriter fw = new FileWriter(fc.getSelectedFile() + ".pub");
 			            fw.write(paramA.getText() + " " + paramB.getText() + " " + paramP.getText() + "\n");
-			            fw.write(paramBaseX.getText() + " " + paramBaseY.getText() + "\n");
+			            
+			            Point basePoint = (Point) basePointList.getSelectedItem();
+			            
+			            fw.write(basePoint.x + " " + basePoint.y + "\n");
 			            fw.write(publicKeyTextArea.getText() + "\n");
 			            fw.close();
 			        } catch (Exception ex) {
@@ -124,7 +129,7 @@ public class GenerateTab extends JPanel{
 			    }
 			}
 		});
-		btnNewButton.setBounds(351, 283, 201, 23);
+		btnNewButton.setBounds(351, 324, 201, 23);
 		this.add(btnNewButton);
 		
 		lblNewLabel_4 = new JLabel("a:");
@@ -158,24 +163,29 @@ public class GenerateTab extends JPanel{
 		this.add(paramP);
 		paramP.setColumns(10);
 		
-		paramBaseX = new JTextField();
-		paramBaseX.setBounds(518, 33, 164, 20);
-		this.add(paramBaseX);
-		paramBaseX.setColumns(10);
-		
-		paramBaseY = new JTextField();
-		paramBaseY.setBounds(518, 58, 164, 20);
-		this.add(paramBaseY);
-		paramBaseY.setColumns(10);
-		
 		btnGeneratePublicFrom = new JButton("Generate public key from private key");
 		btnGeneratePublicFrom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
 			}
 		});
-		btnGeneratePublicFrom.setBounds(351, 89, 331, 23);
+		btnGeneratePublicFrom.setBounds(351, 118, 331, 23);
 		add(btnGeneratePublicFrom);
+		
+		generatePointsButton = new JButton("Generate Points");
+		generatePointsButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ArrayList<Point> points = generateDropDown();
+				basePointList.setModel(new BasePointComboBoxModel(points));
+			}
+		});
+		generatePointsButton.setBounds(518, 32, 164, 23);
+		add(generatePointsButton);
+		
+		basePointList = new JComboBox<Point>();
+		basePointList.setModel(new DefaultComboBoxModel(new String[] {"No points found."}));
+		basePointList.setBounds(518, 66, 164, 23);
+		add(basePointList);
 	}
 	
 	private void generatePrivateKey(long p) {
@@ -188,14 +198,13 @@ public class GenerateTab extends JPanel{
 		// System.out.println(ECC.times(2, new Point(0, 1)));
 		
 		// set param
+		
+		
 		ECC.setParam(
 			(long) Long.parseLong(paramA.getText()), 
 			(long) Long.parseLong(paramB.getText()), 
 			(long) Long.parseLong(paramP.getText()), 
-			new Point(
-				(long) Long.parseLong(paramBaseX.getText()), 
-				(long) Long.parseLong(paramBaseY.getText())
-			)
+			(Point) basePointList.getSelectedItem()
 		);
 		
 		int privateKey = (int) (1 + (Math.random() * (p - 1)));
@@ -209,14 +218,30 @@ public class GenerateTab extends JPanel{
 			(long) Long.parseLong(paramA.getText()), 
 			(long) Long.parseLong(paramB.getText()), 
 			(long) Long.parseLong(paramP.getText()), 
-			new Point(
-				(long) Long.parseLong(paramBaseX.getText()), 
-				(long) Long.parseLong(paramBaseY.getText())
-			)
+			(Point) basePointList.getSelectedItem()
 		);
 		
 		Point publicKey = ECC.times(privateKey, ECC.basePoint);
 		
 		publicKeyTextArea.setText(publicKey.x + " " + publicKey.y);
+	}
+	
+	private ArrayList<Point> generateDropDown(){
+		ArrayList<Point> result = new ArrayList<Point>();
+		
+		long a = Long.parseLong(paramA.getText());
+		long b = Long.parseLong(paramB.getText());
+		long p = Long.parseLong(paramP.getText());
+		
+		for(long x=0;x<p;x++){
+			long y2 = x*x*x + a*x + b;
+			
+			long y = (long) Math.floor(Math.sqrt(y2));
+			if(y*y == y2){ // has solution
+				result.add(new Point(x, ECC.mod(y, p)));
+				result.add(new Point(x, ECC.mod(-y, p)));
+			} // else no solution
+		}
+		return result;
 	}
 }
