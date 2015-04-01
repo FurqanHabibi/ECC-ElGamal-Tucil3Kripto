@@ -21,17 +21,27 @@ public class ECC {
 	public static Point add(Point p, Point q){
 		Point result = new Point();
 		
-		if(p.x == q.x && p.y == q.y){
+		if(p.x.compareTo(q.x) == 0 && p.y.compareTo(q.y) == 0){
 			return ECC.doubles(p);
 		}
 		
-		BigInteger gradient = BigInteger.ZERO;
-		
-		if(p.x != q.x){
-			// System.out.println((q.x - p.x) + " " + ECC.p);
-			gradient = q.y.subtract(p.y).multiply( q.x.subtract(p.x).mod(ECC.p).modInverse(ECC.p)).mod(ECC.p);
-			// System.out.println("Gradient: " + gradient);
+		if(p.isInfinite && q.isInfinite){
+			Point inf = new Point(BigInteger.ZERO, BigInteger.ZERO);
+			inf.isInfinite = true;
+			return inf;
+		} else if(p.isInfinite){
+			return q;
+		} else if(q.isInfinite){
+			return p;
 		}
+		
+		if(p.x.compareTo(q.x) == 0){ // point in infinity
+			Point inf = new Point(BigInteger.ZERO, BigInteger.ZERO);
+			inf.isInfinite = true;
+			return inf;
+		}
+		
+		BigInteger gradient = q.y.subtract(p.y).multiply( q.x.subtract(p.x).mod(ECC.p).modInverse(ECC.p)).mod(ECC.p);
 		
 		result.x = gradient.multiply(gradient).subtract(p.x).subtract(q.x).mod(ECC.p);
 		result.y = gradient.multiply(p.x.subtract(result.x)).subtract(p.y).add(ECC.p).mod(ECC.p);
@@ -46,7 +56,8 @@ public class ECC {
 	}
 	
 	public static Point doubles(Point a){
-		BigInteger gradient = a.x.multiply(new BigInteger("3")).add(ECC.a).multiply(new BigInteger("2").multiply(a.y).modInverse(ECC.p)).mod(ECC.p);
+		BigInteger gradient = a.x.multiply(a.x).multiply(new BigInteger("3")).add(ECC.a).multiply(new BigInteger("2").multiply(a.y).modInverse(ECC.p)).mod(ECC.p);
+		// System.out.println("gradient: " + gradient);
 		Point result = new Point();
 		
 		result.x = gradient.multiply(gradient).subtract(new BigInteger("2").multiply(a.x)).mod(ECC.p);		
@@ -56,7 +67,7 @@ public class ECC {
 	}
 	
 	public static Point times(BigInteger a, Point b){
-		Point result = b;
+		// System.out.println("a, b = " + a + " | " + b);
 		
 		if(a.equals(BigInteger.ZERO))
 			return new Point(BigInteger.ZERO, BigInteger.ZERO);
@@ -110,6 +121,18 @@ public class ECC {
 	}
 	
 	public static void main(String args[]){
-
+		ECC.setParam(new BigInteger("2"), new BigInteger("1"), new BigInteger("5"), new Point(BigInteger.ZERO, BigInteger.ONE));
+		for(int i=1;i<=10;i++){
+			System.out.println(ECC.times(new BigInteger(String.valueOf(i)), new Point(BigInteger.ZERO, BigInteger.ONE)));
+		}
+		
+		// System.out.println(ECC.times(new BigInteger("8"), new Point(BigInteger.ZERO, BigInteger.ONE)));
+		// System.out.println(ECC.doubles(new Point(new BigInteger("3"), new BigInteger("2"))));
+		
+		// expected: (0, 4) + (0, 1) = (0, 1)
+		// System.out.println(ECC.add(new Point(new BigInteger("0"), new BigInteger("4")), new Point(new BigInteger("0"), new BigInteger("1"))));
+		
+		//System.out.println(ECC.times(new BigInteger("31234"), ECC.times(new BigInteger("24321"), new Point(BigInteger.ZERO, BigInteger.ONE))));
+		//System.out.println(ECC.times(new BigInteger("24321"), ECC.times(new BigInteger("31234"), new Point(BigInteger.ZERO, BigInteger.ONE))));
 	}
 }

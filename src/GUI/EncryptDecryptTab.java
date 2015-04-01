@@ -270,8 +270,8 @@ public class EncryptDecryptTab extends JPanel {
 			ciphertextString += " " + ECC.add(ECC.messageToPoint(new BigInteger(String.valueOf(b+128))), ECC.times(k, new Point(publicKeyX, publicKeyY)));
 			ciphertextString += "\n";
 //			System.out.println(ECC.messageToPoint(b+128));
-//			System.out.println(ECC.times(k, ECC.times(privateKey, new Point (publicBaseX, publicBaseY))));
-//			System.out.println(ECC.times(privateKey, ECC.times(k, new Point (publicBaseX, publicBaseY))));
+			System.out.println(ECC.times(k, ECC.times(privateKey, new Point (publicBaseX, publicBaseY))));
+			System.out.println(ECC.times(privateKey, ECC.times(k, new Point (publicBaseX, publicBaseY))));
 //			System.out.println(ECC.times(k*privateKey, new Point (publicBaseX, publicBaseY)));
 		}
 		try {
