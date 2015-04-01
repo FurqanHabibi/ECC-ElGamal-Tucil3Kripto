@@ -108,6 +108,6 @@ public class ECC {
 	}
 	
 	public static void main(String args[]){
-		
+		// System.out.println(ECC.inv_mod(970, 5));
 	}
 }
