@@ -3,9 +3,11 @@ package GUI;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 import javax.swing.JButton;
@@ -49,8 +51,8 @@ public class EncryptDecryptTab extends JPanel {
 	private JButton btnDecrypt;
 	private JButton btnSaveCiphertext;
 	
-	private long privateA, privateB, privateP, privateBaseX, privateBaseY, privateKey;
-	private long publicA, publicB, publicP, publicBaseX, publicBaseY, publicKeyX, publicKeyY;
+	private BigInteger privateA, privateB, privateP, privateBaseX, privateBaseY, privateKey;
+	private BigInteger publicA, publicB, publicP, publicBaseX, publicBaseY, publicKeyX, publicKeyY;
 	private byte[] plaintext, ciphertext;
 
 	public EncryptDecryptTab() {
@@ -160,12 +162,12 @@ public class EncryptDecryptTab extends JPanel {
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 			        try {
 			        	 Scanner sc = new Scanner(fc.getSelectedFile());
-			        	 privateA = sc.nextLong();
-			        	 privateB = sc.nextLong();
-			        	 privateP = sc.nextLong();
-			        	 privateBaseX = sc.nextLong();
-			        	 privateBaseY = sc.nextLong();
-			        	 privateKey = sc.nextLong();
+			        	 privateA = sc.nextBigInteger();
+			        	 privateB = sc.nextBigInteger();
+			        	 privateP = sc.nextBigInteger();
+			        	 privateBaseX = sc.nextBigInteger();
+			        	 privateBaseY = sc.nextBigInteger();
+			        	 privateKey = sc.nextBigInteger();
 			        	 sc.close();
 			        	 lblBtnPrivate.setText(fc.getSelectedFile().getName());
 			        } catch (Exception ex) {
@@ -182,13 +184,13 @@ public class EncryptDecryptTab extends JPanel {
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 			        try {
 			        	 Scanner sc = new Scanner(fc.getSelectedFile());
-			        	 publicA = sc.nextLong();
-			        	 publicB = sc.nextLong();
-			        	 publicP = sc.nextLong();
-			        	 publicBaseX = sc.nextLong();
-			        	 publicBaseY = sc.nextLong();
-			        	 publicKeyX = sc.nextLong();
-			        	 publicKeyY = sc.nextLong();
+			        	 publicA = sc.nextBigInteger();
+			        	 publicB = sc.nextBigInteger();
+			        	 publicP = sc.nextBigInteger();
+			        	 publicBaseX = sc.nextBigInteger();
+			        	 publicBaseY = sc.nextBigInteger();
+			        	 publicKeyX = sc.nextBigInteger();
+			        	 publicKeyY = sc.nextBigInteger();
 			        	 sc.close();
 			        	 lblBtnPublic.setText(fc.getSelectedFile().getName());
 			        } catch (Exception ex) {
@@ -257,14 +259,15 @@ public class EncryptDecryptTab extends JPanel {
 
 	public void encrypt(){
 		String ciphertextString = "";
-		long k = (long)(1 + (Math.random() * (publicP - 1)));
+		
+		BigInteger k = new BigInteger(192, new Random()).mod(publicP.subtract(BigInteger.ONE)).add(BigInteger.ONE);		
 		System.out.println(k);
 		for (byte b : plaintext) {
 			ECC.setParam(publicA, publicB, publicP, new Point (publicBaseX, publicBaseY));
 			System.out.println("public base: " + publicBaseX + " " + publicBaseY);
 			System.out.println("private key: " + privateKey);
 			ciphertextString += ECC.times(k, new Point (publicBaseX, publicBaseY)).toString();
-			ciphertextString += " " + ECC.add(ECC.messageToPoint(b+128), ECC.times(k, new Point(publicKeyX, publicKeyY)));
+			ciphertextString += " " + ECC.add(ECC.messageToPoint(new BigInteger(String.valueOf(b+128))), ECC.times(k, new Point(publicKeyX, publicKeyY)));
 			ciphertextString += "\n";
 //			System.out.println(ECC.messageToPoint(b+128));
 //			System.out.println(ECC.times(k, ECC.times(privateKey, new Point (publicBaseX, publicBaseY))));
@@ -290,10 +293,10 @@ public class EncryptDecryptTab extends JPanel {
 		List<Byte> byteList= new ArrayList<Byte>();
 		Scanner sc = new Scanner(ciphertextString);
 		while (sc.hasNext()) {
-			Point firstPoint = new Point(sc.nextLong(), sc.nextLong());
-			Point secondPoint = new Point(sc.nextLong(), sc.nextLong());
+			Point firstPoint = new Point(sc.nextBigInteger(), sc.nextBigInteger());
+			Point secondPoint = new Point(sc.nextBigInteger(), sc.nextBigInteger());
 			ECC.setParam(privateA, privateB, privateP, new Point (privateBaseX, privateBaseY));
-			byteList.add((byte)(ECC.pointToMessage(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint)))-128));
+			byteList.add(ECC.pointToMessage(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint))).subtract(new BigInteger(String.valueOf(128))).byteValue());
 			//System.out.println(ECC.times(privateKey, firstPoint));
 //			System.out.println(secondPoint);
 //			System.out.println(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint)));
@@ -335,24 +338,24 @@ public class EncryptDecryptTab extends JPanel {
 	
 	public static void main(String args[]){
 		
-		ECC.setParam(1, 1, 8009, new Point(0, 1));
-		System.out.println(ECC.times(5854*6647, new Point(0, 1)));
+		// ECC.setParam(1, 1, 8009, new Point(0, 1));
+		// System.out.println(ECC.times(5854*6647, new Point(0, 1)));
 		
 		
 		
 		/*
 		String ciphertextString = "";
-		long k = (long)(1 + (Math.random() * (5 - 1)));
+		BigInteger k = (BigInteger)(1 + (Math.random() * (5 - 1)));
 		System.out.println(k);
 		
 		String plaintexts = "test";
 		byte[] plaintext = plaintexts.getBytes();
 		
-		long publicA = 2;
-		long publicB = 1;
-		long publicP = 5;
-		long publicBaseX = 0;
-		long publicBaseY = 1;
+		BigInteger publicA = 2;
+		BigInteger publicB = 1;
+		BigInteger publicP = 5;
+		BigInteger publicBaseX = 0;
+		BigInteger publicBaseY = 1;
 		
 		for (byte b : plaintext) {
 			ECC.setParam(publicA, publicB, publicP, new Point (publicBaseX, publicBaseY));

@@ -15,7 +15,9 @@ import algo.ECC;
 import algo.Point;
 
 import java.io.FileWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Random;
 
 import javax.swing.JScrollPane;
 import javax.swing.JList;
@@ -53,7 +55,7 @@ public class GenerateTab extends JPanel{
 		button = new JButton("Generate new keys");
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				generatePrivateKey(Long.parseLong(paramP.getText()));
+				generatePrivateKey(new BigInteger(paramP.getText()));
 			}
 		});
 		
@@ -166,7 +168,7 @@ public class GenerateTab extends JPanel{
 		btnGeneratePublicFrom = new JButton("Generate public key from private key");
 		btnGeneratePublicFrom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
+				generatePublicKey(new BigInteger(privateKeyTextArea.getText()));
 			}
 		});
 		btnGeneratePublicFrom.setBounds(351, 118, 331, 23);
@@ -188,7 +190,7 @@ public class GenerateTab extends JPanel{
 		add(basePointList);
 	}
 	
-	private void generatePrivateKey(long p) {
+	private void generatePrivateKey(BigInteger p) {
 		// test tambah
 		// ECC.setParam(1, 6, 11, new Float(0, 0));
 		// ECC.add(new Float(2, 4), new Float(5, 9));
@@ -199,25 +201,24 @@ public class GenerateTab extends JPanel{
 		
 		// set param
 		
-		
 		ECC.setParam(
-			(long) Long.parseLong(paramA.getText()), 
-			(long) Long.parseLong(paramB.getText()), 
-			(long) Long.parseLong(paramP.getText()), 
+			new BigInteger(paramA.getText()), 
+			new BigInteger(paramB.getText()), 
+			new BigInteger(paramP.getText()), 
 			(Point) basePointList.getSelectedItem()
 		);
 		
-		int privateKey = (int) (1 + (Math.random() * (p - 1)));
-		privateKeyTextArea.setText(String.valueOf(privateKey));
+		BigInteger privateKey = new BigInteger(192, new Random()).mod(ECC.p.subtract(BigInteger.ONE)).add(BigInteger.ONE);
+		privateKeyTextArea.setText(privateKey.toString());
 		generatePublicKey(privateKey);
 	}
 	
-	private void generatePublicKey(long privateKey){
+	private void generatePublicKey(BigInteger privateKey){
 		// set param
 		ECC.setParam(
-			(long) Long.parseLong(paramA.getText()), 
-			(long) Long.parseLong(paramB.getText()), 
-			(long) Long.parseLong(paramP.getText()), 
+			new BigInteger(paramA.getText()), 
+			new BigInteger(paramB.getText()), 
+			new BigInteger(paramP.getText()), 
 			(Point) basePointList.getSelectedItem()
 		);
 		
@@ -226,20 +227,35 @@ public class GenerateTab extends JPanel{
 		publicKeyTextArea.setText(publicKey.x + " " + publicKey.y);
 	}
 	
+	BigInteger sqrt(BigInteger n) {
+		BigInteger a = BigInteger.ONE;
+		BigInteger b = new BigInteger(n.shiftRight(5).add(new BigInteger("8")).toString());
+		while(b.compareTo(a) >= 0) {
+			BigInteger mid = new BigInteger(a.add(b).shiftRight(1).toString());
+			if(mid.multiply(mid).compareTo(n) > 0) 
+				b = mid.subtract(BigInteger.ONE);
+			else 
+				a = mid.add(BigInteger.ONE);
+	}
+	return a.subtract(BigInteger.ONE);
+	}
+	
 	private ArrayList<Point> generateDropDown(){
 		ArrayList<Point> result = new ArrayList<Point>();
 		
-		long a = Long.parseLong(paramA.getText());
-		long b = Long.parseLong(paramB.getText());
-		long p = Long.parseLong(paramP.getText());
+		BigInteger a = new BigInteger(paramA.getText());
+		BigInteger b = new BigInteger(paramB.getText());
+		BigInteger p = new BigInteger(paramP.getText());
 		
-		for(long x=0;x<p;x++){
-			long y2 = x*x*x + a*x + b;
+		for(BigInteger x = BigInteger.ZERO;
+				x.compareTo(p) < 0;
+				x = x.add(BigInteger.ONE)){
 			
-			long y = (long) Math.floor(Math.sqrt(y2));
-			if(y*y == y2){ // has solution
-				result.add(new Point(x, ECC.mod(y, p)));
-				result.add(new Point(x, ECC.mod(-y, p)));
+			BigInteger y2 = x.multiply(x).multiply(x).add(a.multiply(x)).add(b);
+			BigInteger y = sqrt(y2);
+			if(y.multiply(y).equals(y2)){ // has solution
+				result.add(new Point(x, y.mod(p)));
+				result.add(new Point(x, y.multiply(new BigInteger("-1")).mod(p)));
 			} // else no solution
 		}
 		return result;

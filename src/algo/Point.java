@@ -1,15 +1,18 @@
 package algo;
 
+import java.math.BigInteger;
+
 public class Point {
-	public long x,y;
+	public BigInteger x,y;
 	public boolean isInfinite;
 	
 	public Point() {
-		x = y = 0;
+		x = new BigInteger("0");
+		y = new BigInteger("0");
 		isInfinite = false;
 	}
 	
-	public Point(long x, long y){
+	public Point(BigInteger x, BigInteger y){
 		this.x = x;
 		this.y = y;
 	}

@@ -1,15 +1,17 @@
 package algo;
 
+import java.math.BigInteger;
+
 import algo.Point;
 
 public class ECC {
 	public static double EPS = 1e-5;
 	// ECC equation: y^2 = x^3 + a*x + b mod p
-	public static long a, b, p;
+	public static BigInteger a, b, p;
 	// base Point
 	public static Point basePoint;
 	
-	public static void setParam(long a, long b, long p, Point basePoint){
+	public static void setParam(BigInteger a, BigInteger b, BigInteger p, Point basePoint){
 		ECC.a = a;
 		ECC.b = b;
 		ECC.p = p;
@@ -23,107 +25,51 @@ public class ECC {
 			return ECC.doubles(p);
 		}
 		
-		long gradient = 0;
+		BigInteger gradient = BigInteger.ZERO;
 		
 		if(p.x != q.x){
 			// System.out.println((q.x - p.x) + " " + ECC.p);
-			gradient = ECC.mod(((q.y - p.y) * inv_mod((q.x - p.x), ECC.p)), ECC.p); 
+			gradient = q.y.subtract(p.y).multiply( q.x.subtract(p.x).mod(ECC.p).modInverse(ECC.p)).mod(ECC.p);
 			// System.out.println("Gradient: " + gradient);
 		}
-				
-		result.x = ECC.mod((gradient * gradient - p.x - q.x), ECC.p);
-		result.y = ECC.mod((gradient * (p.x - result.x) - p.y + ECC.p), ECC.p);
+		
+		result.x = gradient.multiply(gradient).subtract(p.x).subtract(q.x).mod(ECC.p);
+		result.y = gradient.multiply(p.x.subtract(result.x)).subtract(p.y).add(ECC.p).mod(ECC.p);
 		
 		// System.out.println("Result: " + result);
 		return result;
 	}
 	
 	public static Point minus(Point p, Point q) {
-		Point qMinus = new Point(q.x, mod((q.y*(-1)),ECC.p));
+		Point qMinus = new Point(q.x,  q.y.multiply(new BigInteger("-1")).mod(ECC.p));
 		return ECC.add(p, qMinus);
 	}
 	
-	public static long mod(long a, long b){
-		return (a % b + b) % b;
-	}
-	
-	public static long inv_mod(long a, long b){
-		
-		//System.out.println("inv mod: " + a + " " + b);
-		
-		boolean isNegative = false;
-		if(a == 1){
-			return a;
-		} else if(a == -1){
-			return ECC.mod((b - 1) * 1, b);
-		} else if(a < 0){
-			isNegative = true;
-			a = Math.abs(a);
-		} 
-		
-		// 1/a mod b
-		long vars[][] = new long[3][2];
-		
-		// init
-		vars[0][0] = b;
-		vars[0][1] = 0;
-		vars[1][0] = a;
-		vars[1][1] = 1;
-		
-		// System.out.println(vars[0][0] + " " + vars[1][1]);
-		// System.out.println(vars[1][0] + " " + vars[1][1]);
-				
-		while(true){
-			// System.out.println("inv mod");
-			long d = vars[0][0] / vars[1][0];
-			vars[2][0] = vars[0][0] - d * vars[1][0];
-			vars[2][1] = vars[0][1] - d * vars[1][1];
-			
-			// System.out.println(vars[2][0] + " " + vars[2][1]);
-			if(vars[2][0] == 1){ // done
-				break;
-			}
-			
-			// move 2 to 1, move 3 to 2
-			vars[0][0] = vars[1][0];
-			vars[0][1] = vars[1][1];
-			
-			vars[1][0] = vars[2][0];
-			vars[1][1] = vars[2][1];
-		}
-		
-		if(isNegative){
-			return ECC.mod((b - 1) * vars[2][1], b);
-		} else {
-			return vars[2][1];
-		}
-	}
-	
 	public static Point doubles(Point a){
-		long gradient = ((a.x * 3 + ECC.a) * inv_mod(2 * a.y, ECC.p)) % ECC.p;
+		BigInteger gradient = a.x.multiply(new BigInteger("3")).add(ECC.a).multiply(new BigInteger("2").multiply(a.y).modInverse(ECC.p)).mod(ECC.p);
 		Point result = new Point();
 		
-		result.x = (gradient * gradient - 2 * a.x) % ECC.p;
-		result.y = (gradient * (a.x - result.x) - a.y) % ECC.p;
+		result.x = gradient.multiply(gradient).subtract(new BigInteger("2").multiply(a.x)).mod(ECC.p);		
+		result.y = gradient.multiply(a.x.subtract(result.x)).subtract(a.y).mod(ECC.p);
 		
 		return result;
 	}
 	
-	public static Point times(long a, Point b){
+	public static Point times(BigInteger a, Point b){
 		Point result = b;
 		
-		if(a == 0)
-			return new Point(0, 0);
-		else if(a == 1){
+		if(a.equals(BigInteger.ZERO))
+			return new Point(BigInteger.ZERO, BigInteger.ZERO);
+		else if(a.equals(BigInteger.ONE)){
 			return b;
-		} else if(a % 2 == 0){
-			return ECC.times(a/2, ECC.doubles(b));
+		} else if(a.mod(new BigInteger("2")).equals(BigInteger.ZERO)){
+			return ECC.times(a.divide(new BigInteger("2")), ECC.doubles(b));
 		} else {
-			return ECC.add(ECC.times(a - 1, b), b);
+			return ECC.add(ECC.times(a.subtract(BigInteger.ONE), b), b);
 		}
 		
 		/*
-		for(long i=0;i<a-1;i++){
+		for(BigInteger i=0;i<a-1;i++){
 			//System.out.println("i: " + i + ", result: " + result);
 			result = ECC.add(result, b);
 		}
@@ -132,30 +78,35 @@ public class ECC {
 		*/
 	}
 	
-	public static long solveY(long x) {
-		for (long i=1; i<p; i++) {
-			if (mod((i*i),p)==mod(((x*x*x)+(a*x)+b),p)) {
+	public static BigInteger solveY(BigInteger x) {
+		for (BigInteger i = BigInteger.ONE; 
+				i.compareTo(ECC.p) < 0; 
+				i = i.add(BigInteger.ONE)) {
+			if (i.multiply(i).mod(ECC.p).equals(x.multiply(x).multiply(x).add(ECC.a.multiply(x)).add(ECC.b).mod(ECC.p))){
 				return i;
 			}
 		}
-		return -1;
+		return new BigInteger("-1");
 	}
 	
-	public static int k = 30;
+	public static BigInteger k = new BigInteger("30");
 
-	public static Point messageToPoint(int m) {
-		long x,y;
-		for (int i=1; i<k; i++) {
-			x = m*k + i;
-			if ((y=ECC.solveY(x))!=-1) {
+	public static Point messageToPoint(BigInteger m) {
+		BigInteger x,y;
+		for (BigInteger i = BigInteger.ONE; 
+				i.compareTo(k) < 0; 
+				i = i.add(BigInteger.ONE)) {
+			x = m.multiply(k).add(i);
+			y = ECC.solveY(x);
+			if (!y.equals(new BigInteger("-1"))) {
 				return new Point (x,y);
 			}
 		}
-		return new Point(-1,-1);
+		return new Point(new BigInteger("-1"), new BigInteger("-1"));
 	}
 	
-	public static int pointToMessage(Point p) {
-		return (int)(Math.floor( (p.x-1) / k ) );
+	public static BigInteger pointToMessage(Point p) {
+		return p.x.subtract(BigInteger.ONE).divide(new BigInteger(String.valueOf(k)));
 	}
 	
 	public static void main(String args[]){
