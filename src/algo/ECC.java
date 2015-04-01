@@ -19,9 +19,17 @@ public class ECC {
 	public static Point add(Point p, Point q){
 		Point result = new Point();
 		
-		// System.out.println((q.x - p.x) + " " + ECC.p);
-		long gradient = ECC.mod(((q.y - p.y) * inv_mod((q.x - p.x), ECC.p)), ECC.p); 
-		// System.out.println("Gradient: " + gradient);
+		if(p.x == q.x && p.y == q.y){
+			return ECC.doubles(p);
+		}
+		
+		long gradient = 0;
+		
+		if(p.x != q.x){
+			// System.out.println((q.x - p.x) + " " + ECC.p);
+			gradient = ECC.mod(((q.y - p.y) * inv_mod((q.x - p.x), ECC.p)), ECC.p); 
+			// System.out.println("Gradient: " + gradient);
+		}
 				
 		result.x = ECC.mod((gradient * gradient - p.x - q.x), ECC.p);
 		result.y = ECC.mod((gradient * (p.x - result.x) - p.y + ECC.p), ECC.p);
@@ -30,11 +38,19 @@ public class ECC {
 		return result;
 	}
 	
+	public static Point minus(Point p, Point q) {
+		Point qMinus = new Point(q.x, mod((q.y*(-1)),ECC.p));
+		return ECC.add(p, qMinus);
+	}
+	
 	public static long mod(long a, long b){
 		return (a % b + b) % b;
 	}
 	
 	public static long inv_mod(long a, long b){
+		
+		//System.out.println("inv mod: " + a + " " + b);
+		
 		boolean isNegative = false;
 		if(a == 1){
 			return a;
@@ -96,18 +112,53 @@ public class ECC {
 	public static Point times(long a, Point b){
 		Point result = b;
 		
-		if(a > 1){
-			result = ECC.doubles(result);
+		if(a == 0)
+			return new Point(0, 0);
+		else if(a == 1){
+			return b;
+		} else if(a % 2 == 0){
+			return ECC.times(a/2, ECC.doubles(b));
+		} else {
+			return ECC.add(ECC.times(a - 1, b), b);
 		}
 		
-		for(long i=0;i<a-2;i++){
+		/*
+		for(long i=0;i<a-1;i++){
+			//System.out.println("i: " + i + ", result: " + result);
 			result = ECC.add(result, b);
 		}
 		
 		return result;
+		*/
+	}
+	
+	public static long solveY(long x) {
+		for (long i=1; i<p; i++) {
+			if (mod((i*i),p)==mod(((x*x*x)+(a*x)+b),p)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public static int k = 30;
+
+	public static Point messageToPoint(int m) {
+		long x,y;
+		for (int i=1; i<k; i++) {
+			x = m*k + i;
+			if ((y=ECC.solveY(x))!=-1) {
+				return new Point (x,y);
+			}
+		}
+		return new Point(-1,-1);
+	}
+	
+	public static int pointToMessage(Point p) {
+		return (int)(Math.floor( (p.x-1) / k ) );
 	}
 	
 	public static void main(String args[]){
-		// System.out.println(ECC.inv_mod(970, 5));
+
 	}
 }

@@ -1,171 +1,376 @@
 package GUI;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 
+import algo.ECC;
+import algo.Point;
+
 public class EncryptDecryptTab extends JPanel {
-	private JLabel lblPlaintextFile;
-	private JButton btnBrowseFile;
-	private JLabel lblPlaintext;
-	private JTextArea textArea_2;
-	private JLabel lblNewLabel_3;
-	private JTextArea textArea_3;
-	private JButton btnSaveCiphertext;
-	private JButton button_1;
-	private JLabel label_2;
-	private JButton button_3;
-	private Component label_4;
+
 	private JLabel lblYourPrivateKey;
+	private JButton btnPrivate;
+	private JLabel lblBtnPrivate;
+
 	private JLabel lblReceiverPublicKey;
-	private JButton btnNewButton_1;
-	private JButton btnNewButton_2;
-	private JLabel lblNoFileSelected;
-	private JScrollPane inputAreaScrollPane;
-	private JScrollPane outputAreaScrollPane;
+	private JButton btnPublic;
+	private JLabel lblBtnPublic;
+	
+	private JLabel lblPlaintextFile;
+	private JButton btnPlaintextFile;
+	private JLabel lblBtnPlaintextFile;
+	
+	private JLabel lblCiphertextFile;
+	private JButton btnCiphertextFile;
+	private JLabel lblBtnCiphertextFile;
+
+	private JLabel lblPlaintext;
+	private JScrollPane textAreaPlaintextScrollPane;
+	private JTextArea textAreaPlaintext;
+	private JButton btnEncrypt;
+	private JButton btnSavePlaintext;
+
+	private JLabel lblCiphertext;
+	private JScrollPane textAreaCiphertextScrollPane;
+	private JTextArea textAreaCiphertext;
+	private JButton btnDecrypt;
+	private JButton btnSaveCiphertext;
+	
+	private long privateA, privateB, privateP, privateBaseX, privateBaseY, privateKey;
+	private long publicA, publicB, publicP, publicBaseX, publicBaseY, publicKeyX, publicKeyY;
+	private byte[] plaintext, ciphertext;
 
 	public EncryptDecryptTab() {
 		this.setLayout(null);
 		
-		lblPlaintextFile = new JLabel("Input file:");
+		// public key
+		lblReceiverPublicKey = new JLabel("Receiver/Sender public key:");
+		lblReceiverPublicKey.setBounds(10, 11, 157, 14);
+		this.add(lblReceiverPublicKey);
+		
+		btnPublic = new JButton("Browse file...");
+		btnPublic.setBounds(10, 36, 157, 23);
+		this.add(btnPublic);
+		
+		lblBtnPublic = new JLabel("No file selected.");
+		lblBtnPublic.setBounds(177, 40, 141, 14);
+		this.add(lblBtnPublic);
+		
+		// private key
+		lblYourPrivateKey = new JLabel("Your private key:");
+		lblYourPrivateKey.setBounds(332, 11, 189, 14);
+		this.add(lblYourPrivateKey);
+		
+		btnPrivate = new JButton("Browse file...");
+		btnPrivate.setBounds(332, 36, 157, 23);
+		this.add(btnPrivate);
+		
+		lblBtnPrivate = new JLabel("No file selected.");
+		lblBtnPrivate.setBounds(499, 40, 161, 14);
+		this.add(lblBtnPrivate);
+		
+		// plaintext file
+		lblPlaintextFile = new JLabel("Plaintext file:");
 		lblPlaintextFile.setBounds(10, 80, 70, 14);
 		this.add(lblPlaintextFile);
 		
-		btnBrowseFile = new JButton("Browse file...");
-		btnBrowseFile.setBounds(10, 105, 157, 23);
-		this.add(btnBrowseFile);
+		btnPlaintextFile = new JButton("Browse file...");
+		btnPlaintextFile.setBounds(10, 105, 157, 23);
+		this.add(btnPlaintextFile);
 		
-		lblPlaintext = new JLabel("Input:");
+		lblBtnPlaintextFile = new JLabel("No file selected.");
+		lblBtnPlaintextFile.setBounds(177, 109, 141, 14);
+		this.add(lblBtnPlaintextFile);
+		
+		// ciphertext file
+		lblCiphertextFile = new JLabel("Ciphertext file:");
+		lblCiphertextFile.setBounds(332, 80, 100, 14);
+		this.add(lblCiphertextFile);
+		
+		btnCiphertextFile = new JButton("Browse file...");
+		btnCiphertextFile.setBounds(332, 105, 157, 23);
+		this.add(btnCiphertextFile);
+		
+		lblBtnCiphertextFile = new JLabel("No file selected.");
+		lblBtnCiphertextFile.setBounds(499, 109, 141, 14);
+		this.add(lblBtnCiphertextFile);
+		
+		// Plaintext area
+		lblPlaintext = new JLabel("Plaintext:");
 		lblPlaintext.setBounds(10, 139, 46, 14);
 		this.add(lblPlaintext);
 		
-		textArea_2 = new JTextArea();
-		// textArea_2.setBounds(332, 164, 328, 126);
-		// this.add(textArea_2);
+		textAreaPlaintext = new JTextArea();
+		textAreaPlaintext.setBounds(10, 164, 308, 126);
+		textAreaPlaintext.setLineWrap(true);
+		textAreaPlaintext.setWrapStyleWord(true);
+		textAreaPlaintextScrollPane = new JScrollPane(textAreaPlaintext);
+		textAreaPlaintextScrollPane.setBounds(10, 164, 308, 126);
+		add(textAreaPlaintextScrollPane);
+
+		// Ciphertext area
+		lblCiphertext = new JLabel("Ciphertext:");
+		lblCiphertext.setBounds(332, 139, 70, 14);
+		this.add(lblCiphertext);
 		
-		outputAreaScrollPane = new JScrollPane(textArea_2);
-		outputAreaScrollPane.setBounds(332, 164, 328, 126);
-		add(outputAreaScrollPane);
+		textAreaCiphertext = new JTextArea();
+		textAreaCiphertext.setBounds(332, 164, 328, 126);
+		textAreaCiphertext.setLineWrap(true);
+		textAreaCiphertext.setWrapStyleWord(true);
+		textAreaCiphertextScrollPane = new JScrollPane(textAreaCiphertext);
+		textAreaCiphertextScrollPane.setBounds(332, 164, 328, 126);
+		add(textAreaCiphertextScrollPane);
 		
-		lblNewLabel_3 = new JLabel("Output:");
-		lblNewLabel_3.setBounds(332, 139, 60, 14);
-		this.add(lblNewLabel_3);
+		// Plaintext buttons
+		btnEncrypt = new JButton("Encrypt");
+		btnEncrypt.setBounds(10, 301, 100, 39);
+		this.add(btnEncrypt);
 		
-		textArea_3 = new JTextArea();
-		// textArea_3.setBounds(10, 164, 308, 126);
-		// this.add(textArea_3);
+		btnSavePlaintext = new JButton("Save plaintext");
+		btnSavePlaintext.setBounds(210, 301, 108, 39);
+		add(btnSavePlaintext);
 		
-		inputAreaScrollPane = new JScrollPane(textArea_3);
-		inputAreaScrollPane.setBounds(10, 164, 308, 126);
-		add(inputAreaScrollPane);
+		// Ciphertext buttons
+		btnDecrypt = new JButton("Decrypt");
+		btnDecrypt.setBounds(332, 301, 100, 39);
+		this.add(btnDecrypt);
 		
-		btnSaveCiphertext = new JButton("Save output");
+		btnSaveCiphertext = new JButton("Save ciphertext");
 		btnSaveCiphertext.setBounds(552, 301, 108, 39);
 		this.add(btnSaveCiphertext);
 		
-		button_1 = new JButton("Browse file...");
-		button_1.addActionListener(new ActionListener() {
+		// Set up listeners
+		btnPrivate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				final JFileChooser fc = new JFileChooser();
 				int returnVal = fc.showOpenDialog(null);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 			        try {
-
+			        	 Scanner sc = new Scanner(fc.getSelectedFile());
+			        	 privateA = sc.nextLong();
+			        	 privateB = sc.nextLong();
+			        	 privateP = sc.nextLong();
+			        	 privateBaseX = sc.nextLong();
+			        	 privateBaseY = sc.nextLong();
+			        	 privateKey = sc.nextLong();
+			        	 sc.close();
+			        	 lblBtnPrivate.setText(fc.getSelectedFile().getName());
 			        } catch (Exception ex) {
 			            ex.printStackTrace();
 			        }
 			    }
 			}
 		});
-		button_1.setBounds(10, 36, 157, 23);
-		this.add(button_1);
 		
-		label_2 = new JLabel("No file selected.");
-		label_2.setBounds(177, 40, 141, 14);
-		this.add(label_2);
-		
-		button_3 = new JButton("Browse file...");
-		button_3.addActionListener(new ActionListener() {
+		btnPublic.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				final JFileChooser fc = new JFileChooser();
 				int returnVal = fc.showOpenDialog(null);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 			        try {
-
+			        	 Scanner sc = new Scanner(fc.getSelectedFile());
+			        	 publicA = sc.nextLong();
+			        	 publicB = sc.nextLong();
+			        	 publicP = sc.nextLong();
+			        	 publicBaseX = sc.nextLong();
+			        	 publicBaseY = sc.nextLong();
+			        	 publicKeyX = sc.nextLong();
+			        	 publicKeyY = sc.nextLong();
+			        	 sc.close();
+			        	 lblBtnPublic.setText(fc.getSelectedFile().getName());
 			        } catch (Exception ex) {
 			            ex.printStackTrace();
 			        }
 			    }
 			}
 		});
-		button_3.setBounds(332, 36, 157, 23);
-		this.add(button_3);
 		
-		label_4 = new JLabel("No file selected.");
-		label_4.setBounds(499, 40, 161, 14);
-		this.add(label_4);
+		btnPlaintextFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				final JFileChooser fc = new JFileChooser();
+				int returnVal = fc.showOpenDialog(null);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+			        try {
+			        	plaintext = Files.readAllBytes(fc.getSelectedFile().toPath());
+			        	textAreaPlaintext.setText(new String(plaintext, "UTF-8"));
+			        	lblBtnPlaintextFile.setText(fc.getSelectedFile().getName());
+			        } catch (Exception ex) {
+			            ex.printStackTrace();
+			        }
+			    }
+			}
+		});
 		
-		lblYourPrivateKey = new JLabel("Your private key:");
-		lblYourPrivateKey.setBounds(10, 11, 157, 14);
-		this.add(lblYourPrivateKey);
+		btnCiphertextFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				final JFileChooser fc = new JFileChooser();
+				int returnVal = fc.showOpenDialog(null);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+			        try {
+			        	ciphertext = Files.readAllBytes(fc.getSelectedFile().toPath());
+			        	textAreaCiphertext.setText(byteArrayToHex(ciphertext));
+			        	lblBtnCiphertextFile.setText(fc.getSelectedFile().getName());
+			        } catch (Exception ex) {
+			            ex.printStackTrace();
+			        }
+			    }
+			}
+		});
 		
-		lblReceiverPublicKey = new JLabel("Receiver/Sender public key:");
-		lblReceiverPublicKey.setBounds(332, 11, 189, 14);
-		this.add(lblReceiverPublicKey);
-		
-		btnNewButton_1 = new JButton("Encrypt");
-		btnNewButton_1.addActionListener(new ActionListener() {
+		btnEncrypt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				encrypt();
 			}
 		});
-		btnNewButton_1.setBounds(332, 301, 100, 39);
-		this.add(btnNewButton_1);
-		
-		btnNewButton_2 = new JButton("Decrypt");
-		btnNewButton_2.addActionListener(new ActionListener() {
+
+		btnDecrypt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				decrypt();
 			}
 		});
-		btnNewButton_2.setBounds(442, 301, 100, 39);
-		this.add(btnNewButton_2);
-		
-		lblNoFileSelected = new JLabel("No file selected.");
-		lblNoFileSelected.setBounds(177, 109, 141, 14);
-		this.add(lblNoFileSelected);
-		
-		
-		btnSaveCiphertext.addActionListener(new ActionListener() {
+
+		btnSavePlaintext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				save();
+				save(plaintext);
 			}
 		});
-		btnBrowseFile.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				final JFileChooser fc = new JFileChooser();
-				int returnVal = fc.showOpenDialog(null);
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-			        try {
 
-			        } catch (Exception ex) {
-			            ex.printStackTrace();
-			        }
-			    }
+		btnSaveCiphertext.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				save(ciphertext);
 			}
 		});
 	}
 
-	public void encrypt(){}
-	public void decrypt(){}
-	public void save(){}
+	public void encrypt(){
+		String ciphertextString = "";
+		long k = (long)(1 + (Math.random() * (publicP - 1)));
+		System.out.println(k);
+		for (byte b : plaintext) {
+			ECC.setParam(publicA, publicB, publicP, new Point (publicBaseX, publicBaseY));
+			System.out.println("public base: " + publicBaseX + " " + publicBaseY);
+			System.out.println("private key: " + privateKey);
+			ciphertextString += ECC.times(k, new Point (publicBaseX, publicBaseY)).toString();
+			ciphertextString += " " + ECC.add(ECC.messageToPoint(b+128), ECC.times(k, new Point(publicKeyX, publicKeyY)));
+			ciphertextString += "\n";
+//			System.out.println(ECC.messageToPoint(b+128));
+//			System.out.println(ECC.times(k, ECC.times(privateKey, new Point (publicBaseX, publicBaseY))));
+//			System.out.println(ECC.times(privateKey, ECC.times(k, new Point (publicBaseX, publicBaseY))));
+//			System.out.println(ECC.times(k*privateKey, new Point (publicBaseX, publicBaseY)));
+		}
+		try {
+			ciphertext = ciphertextString.getBytes("UTF-8");
+			textAreaCiphertext.setText(byteArrayToHex(ciphertext));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void decrypt(){
+		String ciphertextString = "";
+		try {
+			ciphertextString = new String (ciphertext, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		List<Byte> byteList= new ArrayList<Byte>();
+		Scanner sc = new Scanner(ciphertextString);
+		while (sc.hasNext()) {
+			Point firstPoint = new Point(sc.nextLong(), sc.nextLong());
+			Point secondPoint = new Point(sc.nextLong(), sc.nextLong());
+			ECC.setParam(privateA, privateB, privateP, new Point (privateBaseX, privateBaseY));
+			byteList.add((byte)(ECC.pointToMessage(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint)))-128));
+			//System.out.println(ECC.times(privateKey, firstPoint));
+//			System.out.println(secondPoint);
+//			System.out.println(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint)));
+//			System.out.println(ECC.add(ECC.times(privateKey, firstPoint), ECC.minus(secondPoint, ECC.times(privateKey, firstPoint))));
+//			System.out.println();
+		}
+		sc.close();
+		plaintext = new byte[byteList.size()];
+		int i=0;
+		for (Byte b : byteList) {
+			plaintext[i] = byteList.get(i);
+			i++;
+		}
+    	try {
+			textAreaPlaintext.setText(new String(plaintext, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void save(byte[] byteArray){
+		final JFileChooser fc = new JFileChooser();
+		int returnVal = fc.showSaveDialog(null);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+	        try {
+	            Files.write(fc.getSelectedFile().toPath(), byteArray);
+	        } catch (Exception ex) {
+	            ex.printStackTrace();
+	        }
+	    }
+	}
 	
+	public String byteArrayToHex(byte[] a) {
+		StringBuilder sb = new StringBuilder(a.length * 2);
+		for(byte b: a)
+			sb.append(String.format("%02x", b & 0xff));
+		return sb.toString();
+	}
+	
+	public static void main(String args[]){
+		
+		ECC.setParam(1, 1, 8009, new Point(0, 1));
+		System.out.println(ECC.times(5854*6647, new Point(0, 1)));
+		
+		
+		
+		/*
+		String ciphertextString = "";
+		long k = (long)(1 + (Math.random() * (5 - 1)));
+		System.out.println(k);
+		
+		String plaintexts = "test";
+		byte[] plaintext = plaintexts.getBytes();
+		
+		long publicA = 2;
+		long publicB = 1;
+		long publicP = 5;
+		long publicBaseX = 0;
+		long publicBaseY = 1;
+		
+		for (byte b : plaintext) {
+			ECC.setParam(publicA, publicB, publicP, new Point (publicBaseX, publicBaseY));
+			System.out.println("public base: " + publicBaseX + " " + publicBaseY);
+			ciphertextString += ECC.times(k, new Point (publicBaseX, publicBaseY)).toString();
+			ciphertextString += " " + ECC.add(ECC.messageToPoint(b+128), ECC.times(k, new Point(publicKeyX, publicKeyY)));
+			ciphertextString += "\n";
+			//System.out.println(ECC.messageToPoint(b+128));
+			System.out.println(ECC.times(k, ECC.times(privateKey, new Point (publicBaseX, publicBaseY))));
+			System.out.println(ECC.times(privateKey, ECC.times(k, new Point (publicBaseX, publicBaseY))));
+			System.out.println(ECC.times(k*privateKey, new Point (publicBaseX, publicBaseY)));
+		}
+		try {
+			ciphertext = ciphertextString.getBytes("UTF-8");
+			textAreaCiphertext.setText(byteArrayToHex(ciphertext));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+	}
 }
