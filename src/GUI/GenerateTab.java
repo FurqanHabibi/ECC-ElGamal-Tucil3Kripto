@@ -77,15 +77,6 @@ public class GenerateTab extends JPanel{
 		button_2.setBounds(10, 283, 201, 23);
 		this.add(button_2);
 		
-//		btnNewButton_5 = new JButton("Generate public key");
-//		btnNewButton_5.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent arg0) {
-//				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
-//			}
-//		});
-//		btnNewButton_5.setBounds(351, 89, 201, 23);
-//		this.add(btnNewButton_5);
-		
 		lblNewLabel = new JLabel("Your public key:");
 		lblNewLabel.setBounds(351, 119, 108, 14);
 		this.add(lblNewLabel);
