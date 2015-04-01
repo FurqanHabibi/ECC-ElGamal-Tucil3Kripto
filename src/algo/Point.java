@@ -2,7 +2,7 @@ package algo;
 
 import java.math.BigInteger;
 
-public class Point {
+public class Point implements java.io.Serializable {
 	public BigInteger x,y;
 	public boolean isInfinite;
 	

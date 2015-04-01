@@ -59,7 +59,7 @@ public class EncryptDecryptTab extends JPanel {
 		this.setLayout(null);
 		
 		// public key
-		lblReceiverPublicKey = new JLabel("Receiver/Sender public key:");
+		lblReceiverPublicKey = new JLabel("Public key:");
 		lblReceiverPublicKey.setBounds(10, 11, 157, 14);
 		this.add(lblReceiverPublicKey);
 		
@@ -72,7 +72,7 @@ public class EncryptDecryptTab extends JPanel {
 		this.add(lblBtnPublic);
 		
 		// private key
-		lblYourPrivateKey = new JLabel("Your private key:");
+		lblYourPrivateKey = new JLabel("Private key:");
 		lblYourPrivateKey.setBounds(332, 11, 189, 14);
 		this.add(lblYourPrivateKey);
 		
@@ -258,21 +258,22 @@ public class EncryptDecryptTab extends JPanel {
 	}
 
 	public void encrypt(){
+		long startTime = System.nanoTime();
 		String ciphertextString = "";
 		
 		BigInteger k = new BigInteger(192, new Random()).mod(publicP.subtract(BigInteger.ONE)).add(BigInteger.ONE);		
-		System.out.println(k);
+//		System.out.println(k);
+		ECC.setParam(publicA, publicB, publicP, new Point (publicBaseX, publicBaseY));
+		ciphertextString += ECC.times(k, new Point (publicBaseX, publicBaseY)).toString();
+		ciphertextString += "\n";
 		for (byte b : plaintext) {
-			ECC.setParam(publicA, publicB, publicP, new Point (publicBaseX, publicBaseY));
-			System.out.println("public base: " + publicBaseX + " " + publicBaseY);
-			System.out.println("private key: " + privateKey);
-			ciphertextString += ECC.times(k, new Point (publicBaseX, publicBaseY)).toString();
-			ciphertextString += " " + ECC.add(ECC.messageToPoint(new BigInteger(String.valueOf(b+128))), ECC.times(k, new Point(publicKeyX, publicKeyY)));
-			ciphertextString += "\n";
+			ciphertextString += ECC.add(ECC.messageToPoint(new BigInteger(String.valueOf(b+128))), ECC.times(k, new Point(publicKeyX, publicKeyY))) + "\n";
+//			System.out.println("public base: " + publicBaseX + " " + publicBaseY);
+//			System.out.println("private key: " + privateKey);
 //			System.out.println(ECC.messageToPoint(b+128));
-			System.out.println(ECC.times(k, ECC.times(privateKey, new Point (publicBaseX, publicBaseY))));
-			System.out.println(ECC.times(privateKey, ECC.times(k, new Point (publicBaseX, publicBaseY))));
-//			System.out.println(ECC.times(k*privateKey, new Point (publicBaseX, publicBaseY)));
+//			System.out.println(ECC.times(k, ECC.times(privateKey, new Point (publicBaseX, publicBaseY))));
+//			System.out.println(ECC.times(privateKey, ECC.times(k, new Point (publicBaseX, publicBaseY))));
+//			System.out.println(ECC.times(privateKey.multiply(k), new Point (publicBaseX, publicBaseY)));
 		}
 		try {
 			ciphertext = ciphertextString.getBytes("UTF-8");
@@ -281,8 +282,10 @@ public class EncryptDecryptTab extends JPanel {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println((System.nanoTime()-startTime)*(Math.pow(10, -9)));
 	}
 	public void decrypt(){
+		long startTime = System.nanoTime();
 		String ciphertextString = "";
 		try {
 			ciphertextString = new String (ciphertext, "UTF-8");
@@ -292,12 +295,12 @@ public class EncryptDecryptTab extends JPanel {
 		}
 		List<Byte> byteList= new ArrayList<Byte>();
 		Scanner sc = new Scanner(ciphertextString);
+		Point firstPoint = new Point(sc.nextBigInteger(), sc.nextBigInteger());
+		ECC.setParam(privateA, privateB, privateP, new Point (privateBaseX, privateBaseY));
 		while (sc.hasNext()) {
-			Point firstPoint = new Point(sc.nextBigInteger(), sc.nextBigInteger());
 			Point secondPoint = new Point(sc.nextBigInteger(), sc.nextBigInteger());
-			ECC.setParam(privateA, privateB, privateP, new Point (privateBaseX, privateBaseY));
-			byteList.add(ECC.pointToMessage(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint))).subtract(new BigInteger(String.valueOf(128))).byteValue());
-			//System.out.println(ECC.times(privateKey, firstPoint));
+			byteList.add(ECC.pointToMessage(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint))).subtract(new BigInteger("128")).byteValue());
+//			System.out.println(ECC.times(privateKey, firstPoint));
 //			System.out.println(secondPoint);
 //			System.out.println(ECC.minus(secondPoint, ECC.times(privateKey, firstPoint)));
 //			System.out.println(ECC.add(ECC.times(privateKey, firstPoint), ECC.minus(secondPoint, ECC.times(privateKey, firstPoint))));
@@ -316,7 +319,9 @@ public class EncryptDecryptTab extends JPanel {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println((System.nanoTime()-startTime)*(Math.pow(10, -9)));
 	}
+	
 	public void save(byte[] byteArray){
 		final JFileChooser fc = new JFileChooser();
 		int returnVal = fc.showSaveDialog(null);
