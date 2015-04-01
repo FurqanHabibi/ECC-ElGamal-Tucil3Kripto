@@ -14,6 +14,7 @@ import algo.ECC;
 import algo.Point;
 
 import java.io.FileWriter;
+import javax.swing.JScrollPane;
 
 public class GenerateTab extends JPanel{
 	
@@ -34,6 +35,9 @@ public class GenerateTab extends JPanel{
 	private JLabel lblNewLabel_5;
 	private JLabel lblNewLabel_6;
 	private JLabel lblBasePoint;
+	private JScrollPane privateKeyScrollPane;
+	private JScrollPane publicKeyScrollPane;
+	private JButton btnGeneratePublicFrom;
 
 	public GenerateTab() {
 		this.setLayout(null);
@@ -45,7 +49,7 @@ public class GenerateTab extends JPanel{
 			}
 		});
 		
-		button.setBounds(10, 89, 201, 23);
+		button.setBounds(10, 89, 331, 23);
 		this.add(button);
 		
 		label = new JLabel("Your private key:");
@@ -53,8 +57,11 @@ public class GenerateTab extends JPanel{
 		this.add(label);
 		
 		privateKeyTextArea = new JTextArea();
-		privateKeyTextArea.setBounds(10, 136, 331, 136);
-		this.add(privateKeyTextArea);
+		// privateKeyTextArea.setBounds(10, 136, 331, 136);
+		
+		privateKeyScrollPane = new JScrollPane(privateKeyTextArea);
+		privateKeyScrollPane.setBounds(10, 136, 331, 136);
+		add(privateKeyScrollPane);
 		
 		button_2 = new JButton("Save private key");
 		button_2.addActionListener(new ActionListener() {
@@ -82,9 +89,13 @@ public class GenerateTab extends JPanel{
 		this.add(lblNewLabel);
 		
 		publicKeyTextArea = new JTextArea();
-		publicKeyTextArea.setBounds(351, 136, 331, 136);
-		this.add(publicKeyTextArea);
+		// publicKeyTextArea.setBounds(351, 136, 331, 136);
+		// this.add(publicKeyTextArea);
 		publicKeyTextArea.setEditable(false);
+		
+		publicKeyScrollPane = new JScrollPane(publicKeyTextArea);
+		publicKeyScrollPane.setBounds(351, 136, 331, 136);
+		add(publicKeyScrollPane);
 		
 		btnNewButton = new JButton("Save public key");
 		btnNewButton.addActionListener(new ActionListener() {
@@ -147,6 +158,15 @@ public class GenerateTab extends JPanel{
 		paramBaseY.setBounds(518, 58, 164, 20);
 		this.add(paramBaseY);
 		paramBaseY.setColumns(10);
+		
+		btnGeneratePublicFrom = new JButton("Generate public key from private key");
+		btnGeneratePublicFrom.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				generatePublicKey(Long.parseLong(privateKeyTextArea.getText()));
+			}
+		});
+		btnGeneratePublicFrom.setBounds(351, 89, 331, 23);
+		add(btnGeneratePublicFrom);
 	}
 	
 	private void generatePrivateKey(long p) {
