@@ -90,24 +90,31 @@ public class ECC {
 	}
 	
 	public static BigInteger solveY(BigInteger x) {
-		for (BigInteger i = BigInteger.ONE; 
-				i.compareTo(ECC.p) < 0; 
-				i = i.add(BigInteger.ONE)) {
-			if (i.multiply(i).mod(ECC.p).equals(x.multiply(x).multiply(x).add(ECC.a.multiply(x)).add(ECC.b).mod(ECC.p))){
-				return i;
-			}
+//		for (BigInteger i = BigInteger.ONE; 
+//				i.compareTo(ECC.p) < 0; 
+//				i = i.add(BigInteger.ONE)) {
+//			if (i.multiply(i).mod(ECC.p).equals(x.multiply(x).multiply(x).add(ECC.a.multiply(x)).add(ECC.b).mod(ECC.p))){
+//				return i;
+//			}
+//		}
+		BigInteger y = SquareRootModular.sqrtP(x.multiply(x).multiply(x).add(ECC.a.multiply(x)).add(ECC.b).mod(ECC.p), ECC.p);
+		if (y==null) {
+			return new BigInteger("-1");
 		}
-		return new BigInteger("-1");
+		else {
+			return y;
+		}
 	}
 	
 	public static BigInteger k = new BigInteger("30");
 
 	public static Point messageToPoint(BigInteger m) {
 		BigInteger x,y;
+		BigInteger mk = m.multiply(k);
 		for (BigInteger i = BigInteger.ONE; 
 				i.compareTo(k) < 0; 
 				i = i.add(BigInteger.ONE)) {
-			x = m.multiply(k).add(i);
+			x = mk.add(i);
 			y = ECC.solveY(x);
 			if (!y.equals(new BigInteger("-1"))) {
 				return new Point (x,y);

@@ -2,18 +2,8 @@ package GUI;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
-import javax.swing.JTextArea;
-import javax.swing.JLabel;
-import javax.swing.JButton;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-
 import javax.swing.JTabbedPane;
-import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 
 public class GUI {
